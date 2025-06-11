@@ -6,7 +6,7 @@ import java.nio.file.Path;
 public class ResourceHelper {
 
     public static File copyResourceToFile(String resourcePath, Path targetPath) {
-        // Name der Datei aus dem Ressourcenpfad extrahieren
+
         String fileName = resourcePath.substring(resourcePath.lastIndexOf("/") + 1);
         File targetFile = new File(targetPath.toFile(), fileName);
 
@@ -25,6 +25,7 @@ public class ResourceHelper {
         } catch (IOException e) {
             throw new RuntimeException("Problem copying " + fileName + ": " + e.getMessage());
         }
+        System.out.println("Copied " + fileName + " to " + targetFile.getAbsolutePath());
         return targetFile;
     }
 

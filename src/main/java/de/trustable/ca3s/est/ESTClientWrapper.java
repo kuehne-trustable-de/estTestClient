@@ -68,7 +68,7 @@ public class ESTClientWrapper {
             cmdList.add("sh");
             cmdList.add("-c");
             cmdList.add(clientCodeDirectory.toAbsolutePath() + File.separator +
-                    "estclient \"" + String.join(" ",argList) + "\"");
+                    "estclient " + String.join(" ",argList) );
 
             builder.environment().put("LD_LIBRARY_PATH", clientCodeDirectory.toAbsolutePath().toString());
         }

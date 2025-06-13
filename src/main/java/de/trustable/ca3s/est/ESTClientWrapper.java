@@ -1,7 +1,9 @@
 package de.trustable.ca3s.est;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -10,12 +12,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.*;
 
+/**
+ * Wrapper for the libest client in an os-independent way
+ * All program arguments are forwarded to the est client
+ *
+ */
 public class ESTClientWrapper {
 
     boolean verbose;
     Path clientCodeDirectory;
     String os;
     boolean isWindows = false;
+
+    String cacert = null;
 
     ExecutorService executorService = Executors.newFixedThreadPool(10);
 
@@ -68,9 +77,16 @@ public class ESTClientWrapper {
             cmdList.add("sh");
             cmdList.add("-c");
             cmdList.add(clientCodeDirectory.toAbsolutePath() + File.separator +
-                    "estclient " + String.join(" ",argList) );
+                    "estclient " + String.join(" ", argList));
 
             builder.environment().put("LD_LIBRARY_PATH", clientCodeDirectory.toAbsolutePath().toString());
+        }
+
+        if (getCacert() != null){
+            builder.environment().put("EST_OPENSSL_CACERT", getCacert());
+            if(verbose) {
+                System.out.println("setting : EST_OPENSSL_CACERT to " + getCacert());
+            }
         }
 
         if(verbose) {
@@ -97,9 +113,58 @@ public class ESTClientWrapper {
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
 
         ESTClientWrapper estClientWrapper = new ESTClientWrapper();
+        estClientWrapper.buildCaCertForServer(args);
+
         OutcomeInfo outcomeInfo = estClientWrapper.execute(Arrays.asList(args));
         System.err.println("### err stream:\n" + outcomeInfo.getErr());
         System.out.println("### out stream:\n" + outcomeInfo.getOut());
         System.exit(outcomeInfo.getExitCode());
+    }
+
+    /**
+     * retrieve host and port from arguments.
+     * if present, get the certificate chain from the server and write it to a temp file
+     * and preset the value of EST_OPENSSL_CACERT.
+     * Useful for test where the server certs are not known in advance and includes the full chain.
+     *
+     * @param args the arguments as expected by the libest client
+     */
+    void buildCaCertForServer(String[] args){
+        String host = null;
+        int port = 0;
+        for(int i = 0; i < args.length -1; i++){
+            String arg = args[i];
+            if ("-s".equals(arg)){
+                host = args[i+1];
+            }
+            if ("-p".equals(arg)){
+                port = Integer.parseInt(args[i+1]);
+            }
+        }
+        if (host == null || port == 0){
+            return;
+        }
+        try {
+            String cacert = TLSServerHelper.getServerCertificates(host, port);
+
+            File cacertFile = File.createTempFile("cacert", ".crt");
+            try (FileOutputStream fos = new FileOutputStream(cacertFile)) {
+                fos.write(cacert.getBytes(StandardCharsets.UTF_8));
+            }
+
+            setCacert(cacertFile.getAbsolutePath());
+            if(verbose) {
+                System.out.println("### server certs for " + host + ":" + port + " successful: \n" + cacert);
+            }
+        } catch (Exception e) {
+            System.err.println("### retrieval of server certs for " + host + ":" + port + " failed: " + e.getMessage() );
+        }
+    }
+    public String getCacert() {
+        return cacert;
+    }
+
+    public void setCacert(String cacert) {
+        this.cacert = cacert;
     }
 }

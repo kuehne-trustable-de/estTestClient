@@ -2,14 +2,12 @@ package de.trustable.ca3s.est;
 
 import javax.net.ssl.*;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.Collections;
+import java.util.*;
 
 public class TLSServerHelper {
 
@@ -61,6 +59,24 @@ public class TLSServerHelper {
             }
         }
 
+        return wrapCertificates(serverCerts);
+    }
+
+    public static String getTrustedCerts() throws NoSuchAlgorithmException, KeyStoreException, CertificateEncodingException {
+        TrustManagerFactory trustManagerFactory =
+                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init((KeyStore) null);
+
+        List<TrustManager> trustManagers = Arrays.asList(trustManagerFactory.getTrustManagers());
+
+        return wrapCertificates(trustManagers.stream()
+                .filter(X509TrustManager.class::isInstance)
+                .map(X509TrustManager.class::cast)
+                .map(trustManager -> Arrays.asList(trustManager.getAcceptedIssuers()))
+                .flatMap(Collection::stream).toArray(Certificate[]::new));
+    }
+
+    private static String wrapCertificates(Certificate[] serverCerts) throws CertificateEncodingException {
         StringBuilder pemCerts = new StringBuilder();
         for (Certificate cert : serverCerts) {
             X509Certificate x509 = (X509Certificate) cert;

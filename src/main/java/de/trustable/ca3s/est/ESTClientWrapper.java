@@ -85,7 +85,7 @@ public class ESTClientWrapper {
         if (getCacert() != null){
             builder.environment().put("EST_OPENSSL_CACERT", getCacert());
             if(verbose) {
-                System.out.println("setting : EST_OPENSSL_CACERT to " + getCacert());
+                System.out.println("environment : EST_OPENSSL_CACERT to " + getCacert());
             }
         }
 
@@ -113,6 +113,17 @@ public class ESTClientWrapper {
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
 
         ESTClientWrapper estClientWrapper = new ESTClientWrapper();
+
+        String cacert = System.getProperty("CA_CERT", null);
+        System.err.println("--- cacert :" + cacert);
+        if("java-truststore".equalsIgnoreCase(cacert)){
+            estClientWrapper.buildCaCertFromTruststore();
+        } else if("server-certs".equalsIgnoreCase(cacert)){
+            estClientWrapper.buildCaCertForServer(args);
+        } else if(cacert != null){
+            estClientWrapper.setCacert(cacert);
+        }
+
         estClientWrapper.buildCaCertForServer(args);
 
         OutcomeInfo outcomeInfo = estClientWrapper.execute(Arrays.asList(args));
@@ -147,19 +158,41 @@ public class ESTClientWrapper {
         try {
             String cacert = TLSServerHelper.getServerCertificates(host, port);
 
-            File cacertFile = File.createTempFile("cacert", ".crt");
+            File cacertFile = File.createTempFile("cacert_server", ".crt");
             try (FileOutputStream fos = new FileOutputStream(cacertFile)) {
                 fos.write(cacert.getBytes(StandardCharsets.UTF_8));
             }
 
             setCacert(cacertFile.getAbsolutePath());
             if(verbose) {
-                System.out.println("### server certs for " + host + ":" + port + " successful: \n" + cacert);
+                System.out.println("### server certs for " + host + ":" + port + " written successfully: \n" + cacert);
             }
         } catch (Exception e) {
             System.err.println("### retrieval of server certs for " + host + ":" + port + " failed: " + e.getMessage() );
         }
     }
+
+    /**
+     * retrieve all trusted certs from Java runtime
+     */
+    void buildCaCertFromTruststore(){
+        try {
+            String cacert = TLSServerHelper.getTrustedCerts();
+
+            File cacertFile = File.createTempFile("cacert_truststore", ".crt");
+            try (FileOutputStream fos = new FileOutputStream(cacertFile)) {
+                fos.write(cacert.getBytes(StandardCharsets.UTF_8));
+            }
+
+            setCacert(cacertFile.getAbsolutePath());
+            if(verbose) {
+                System.out.println("### truststore certs written successfully: \n" + cacert);
+            }
+        } catch (Exception e) {
+            System.err.println("### retrieval of truststore certs failed: " + e.getMessage() );
+        }
+    }
+
     public String getCacert() {
         return cacert;
     }

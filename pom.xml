@@ -8,6 +8,11 @@
     <artifactId>ESTClientWrapper</artifactId>
     <version>1.0.0</version>
 
+    <name>ESTClientWrapper</name>
+    <description>A test wrapper around different os-specific versions of libest (https://github.com/cisco/libest)([https://sourceforge.net/projects/ca3s/]
+    </description>
+    <url>https://github.com/kuehne-trustable-de/estTestClient</url>
+
     <licenses>
         <license>
             <name>European Union Public Licence (EUPL-1.2)</name>
@@ -83,6 +88,36 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>3.2.7</version>
                 <executions>
@@ -103,14 +138,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.11.2</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                </configuration>
             </plugin>
 
             <plugin>

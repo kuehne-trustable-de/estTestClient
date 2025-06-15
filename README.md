@@ -1,0 +1,39 @@
+# ESTClientWrapper
+A wrapper around os-specific versions of libest (https://github.com/cisco/libest) client.
+The pre-build native versions for x86-Windows and -Linux are packaged in this wrapper. 
+This enables testing of an EST server (https://www.rfc-editor.org/rfc/rfc7030.html) on different platforms. 
+The binaries were copied into a temporary directory and executed there.This has security drawbacks. So use this wrapper for testing in non-productive environments, only.
+
+## Usage
+
+The wrapper has a call level interface forwarding all arguments to the binary unchanged. 
+Here is a sample call showing the libest client help:
+
+```
+java  -jar .\ESTClientWrapper-1.0.0.jar -?
+```
+
+The client expects a set of trust anchors provided in an environment variable 'EST_OPENSSL_CACERT'. This variable must be set for all relevant actions. 
+Providing this variable may be os specific. To simplify it the wrapper provides an option to set this environment variable.
+
+| value of 'CA_CERT' | remarks                                                                                                            |
+|--------------------|--------------------------------------------------------------------------------------------------------------------|
+| 'java-truststore'  | forward all certificates of the Java runtime truststore                                                            |
+| 'server-certs'     | read the certificates from the EST server. Useful if the server provides its trust anchor during the TLS handshake |
+| a filename         | the filename will be set as value of 'EST_OPENSSL_CACERT'                                                          |
+
+A sample call looks like this:
+```
+java -DCA_CERT=java-truststore -jar .\ESTClientWrapper-1.0.0.jar -?
+```
+
+Other options are 
+
+| name            | value        | remarks                                                                      |
+|-----------------|--------------|------------------------------------------------------------------------------|
+| WRAPPER_VERBOSE | true / false | log some details of the wrapper internals                                    |
+| KEEP_CODE_DIR   | true / false | keep the directory with the copied binaries and the trust store (if created) |
+
+## License
+This code is published under the [European Union Public Licence (EUPL-1.2)]{https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12}
+The included code of libest confirms with these [licences]{https://github.com/cisco/libest/blob/main/LICENSE}

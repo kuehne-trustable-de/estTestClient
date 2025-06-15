@@ -63,7 +63,15 @@ public class ESTClientWrapper {
         }
     }
 
-    public OutcomeInfo execute(List<String> argList) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    /**
+     * Invoke the wrapper around the binary of the libest client.
+     *
+     * @param argList a list of arguments passed to the libest client
+     * @return the result structure of the invocation
+     *
+     * @throws Exception a problem has occurred
+     */
+    public OutcomeInfo execute(List<String> argList) throws Exception {
         ProcessBuilder builder = new ProcessBuilder();
 
         List<String> cmdList = new ArrayList<>();
@@ -110,7 +118,8 @@ public class ESTClientWrapper {
         return new OutcomeInfo(outBuffer.toString(), errBuffer.toString(), exitCode);
     }
 
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
+
+    public static void main(String[] args) throws Exception{
 
         ESTClientWrapper estClientWrapper = new ESTClientWrapper();
 
@@ -123,8 +132,6 @@ public class ESTClientWrapper {
         } else if(cacert != null){
             estClientWrapper.setCacert(cacert);
         }
-
-        estClientWrapper.buildCaCertForServer(args);
 
         OutcomeInfo outcomeInfo = estClientWrapper.execute(Arrays.asList(args));
         System.err.println("### err stream:\n" + outcomeInfo.getErr());
@@ -140,21 +147,33 @@ public class ESTClientWrapper {
      *
      * @param args the arguments as expected by the libest client
      */
-    void buildCaCertForServer(String[] args){
+    void buildCaCertForServer(String[] args) {
         String host = null;
         int port = 0;
-        for(int i = 0; i < args.length -1; i++){
+        for (int i = 0; i < args.length - 1; i++) {
             String arg = args[i];
-            if ("-s".equals(arg)){
-                host = args[i+1];
+            if ("-s".equals(arg)) {
+                host = args[i + 1];
             }
-            if ("-p".equals(arg)){
-                port = Integer.parseInt(args[i+1]);
+            if ("-p".equals(arg)) {
+                port = Integer.parseInt(args[i + 1]);
             }
         }
-        if (host == null || port == 0){
+        if (host == null || port == 0) {
             return;
         }
+        buildCaCertForServer(host, port);
+    }
+
+    /**
+     * Get the certificate chain from the server and write it to a temp file.
+     * Preset the value of EST_OPENSSL_CACERT.
+     * Useful for test where the server certs are not known in advance. It MUST include the full chain.
+     *
+     * @param host the server's host name
+     * @param port the server's port
+     */
+    public void buildCaCertForServer(final String host, final int port){
         try {
             String cacert = TLSServerHelper.getServerCertificates(host, port);
 
@@ -173,9 +192,9 @@ public class ESTClientWrapper {
     }
 
     /**
-     * retrieve all trusted certs from Java runtime
+     * retrieve all trusted certs from the wrapper's Java runtime
      */
-    void buildCaCertFromTruststore(){
+    public void buildCaCertFromTruststore(){
         try {
             String cacert = TLSServerHelper.getTrustedCerts();
 
@@ -193,11 +212,36 @@ public class ESTClientWrapper {
         }
     }
 
+    /**
+     * Get the file name of the ca certs. The value does not reflect the value of the EST_OPENSSL_CACERT environment variable.
+     * @return ca cert's filename. If it's null the EST_OPENSSL_CACERT environment variable remains unchanged
+     */
     public String getCacert() {
         return cacert;
     }
 
+    /**
+     * Set the file name of the ca certs. Will be set as the value of the EST_OPENSSL_CACERT environment variable
+     * @param cacert the file name of the ca certs
+     */
     public void setCacert(String cacert) {
         this.cacert = cacert;
+    }
+
+    /**
+     * Returns the flag for logging of wrapper details
+     * @return value of the verbose flag
+     */
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    /**
+     * Sets the flag for logging of wrapper details
+     *
+     * @param verbose new value of the verbose flag
+     */
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 }

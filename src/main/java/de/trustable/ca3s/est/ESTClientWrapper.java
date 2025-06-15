@@ -124,8 +124,6 @@ public class ESTClientWrapper {
             estClientWrapper.setCacert(cacert);
         }
 
-        estClientWrapper.buildCaCertForServer(args);
-
         OutcomeInfo outcomeInfo = estClientWrapper.execute(Arrays.asList(args));
         System.err.println("### err stream:\n" + outcomeInfo.getErr());
         System.out.println("### out stream:\n" + outcomeInfo.getOut());
@@ -140,7 +138,7 @@ public class ESTClientWrapper {
      *
      * @param args the arguments as expected by the libest client
      */
-    void buildCaCertForServer(String[] args){
+    public void buildCaCertForServer(String[] args){
         String host = null;
         int port = 0;
         for(int i = 0; i < args.length -1; i++){
@@ -175,7 +173,7 @@ public class ESTClientWrapper {
     /**
      * retrieve all trusted certs from Java runtime
      */
-    void buildCaCertFromTruststore(){
+    public void buildCaCertFromTruststore(){
         try {
             String cacert = TLSServerHelper.getTrustedCerts();
 
@@ -199,5 +197,13 @@ public class ESTClientWrapper {
 
     public void setCacert(String cacert) {
         this.cacert = cacert;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 }

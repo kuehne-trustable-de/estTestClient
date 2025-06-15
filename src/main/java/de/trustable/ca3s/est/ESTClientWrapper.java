@@ -147,19 +147,19 @@ public class ESTClientWrapper {
      *
      * @param args the arguments as expected by the libest client
      */
-    void buildCaCertForServer(String[] args) {
+    void buildCaCertForServer(String[] args){
         String host = null;
         int port = 0;
-        for (int i = 0; i < args.length - 1; i++) {
+        for(int i = 0; i < args.length -1; i++){
             String arg = args[i];
-            if ("-s".equals(arg)) {
-                host = args[i + 1];
+            if ("-s".equals(arg)){
+                host = args[i+1];
             }
-            if ("-p".equals(arg)) {
-                port = Integer.parseInt(args[i + 1]);
+            if ("-p".equals(arg)){
+                port = Integer.parseInt(args[i+1]);
             }
         }
-        if (host == null || port == 0) {
+        if (host == null || port == 0){
             return;
         }
         buildCaCertForServer(host, port);

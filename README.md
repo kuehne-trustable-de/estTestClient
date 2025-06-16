@@ -1,19 +1,24 @@
 # ESTClientWrapper
 A wrapper around os-specific versions of libest (https://github.com/cisco/libest) client.
-The pre-build native versions for x86-Windows and -Linux are packaged in this wrapper. 
-This enables testing of an EST server (https://www.rfc-editor.org/rfc/rfc7030.html) on different platforms. 
+The pre-build native versions for x86-Windows and -Linux are packaged in this wrapper.
+This enables testing of an EST server (https://www.rfc-editor.org/rfc/rfc7030.html) on different platforms.
 The binaries were copied into a temporary directory and executed there.This has security drawbacks. So use this wrapper for testing in non-productive environments, only.
+
+## License
+This code is published under the [European Union Public Licence (EUPL-1.2)]{https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12}
+The included code of libest confirms with these [licences]{https://github.com/cisco/libest/blob/main/LICENSE}
 
 ## Usage
 
-The wrapper has a call level interface forwarding all arguments to the binary unchanged. 
+### Command line
+The wrapper has a call level interface forwarding all arguments to the binary unchanged.
 Here is a sample call showing the libest client help:
 
 ```
-java  -jar .\ESTClientWrapper-1.0.0.jar -?
+java  -jar .\ESTClientWrapper-1.0.1.jar -?
 ```
 
-The client expects a set of trust anchors provided in an environment variable 'EST_OPENSSL_CACERT'. This variable must be set for all relevant actions. 
+The client expects a set of trust anchors provided in an environment variable 'EST_OPENSSL_CACERT'. This variable must be set for all relevant actions.
 Providing this variable may be os specific. To simplify it the wrapper provides an option to set this environment variable.
 
 | value of 'CA_CERT' | remarks                                                                                                            |
@@ -24,16 +29,60 @@ Providing this variable may be os specific. To simplify it the wrapper provides 
 
 A sample call looks like this:
 ```
-java -DCA_CERT=java-truststore -jar .\ESTClientWrapper-1.0.0.jar -?
+java -DCA_CERT=java-truststore -jar .\ESTClientWrapper-1.0.1.jar -?
 ```
 
-Other options are 
+Other options are
 
 | name            | value        | remarks                                                                      |
 |-----------------|--------------|------------------------------------------------------------------------------|
 | WRAPPER_VERBOSE | true / false | log some details of the wrapper internals                                    |
 | KEEP_CODE_DIR   | true / false | keep the directory with the copied binaries and the trust store (if created) |
 
-## License
-This code is published under the [European Union Public Licence (EUPL-1.2)]{https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12}
-The included code of libest confirms with these [licences]{https://github.com/cisco/libest/blob/main/LICENSE}
+### Test class
+
+```
+	@BeforeAll
+	public static void setUpBeforeClass() throws IOException {
+	
+	    // Init the Wrapper class once, only
+        estClientWrapper = new ESTClientWrapper();
+        estClientWrapper.setVerbose(true);
+    }
+
+    @Test
+    public void testGetCaCerts() throws Exception{
+
+        List<String> argList = new ArrayList<String>();
+
+	    // Provide the client arguments
+        argList.add("-v");
+        
+        argList.add("-g");
+        
+        argList.add("-s");
+        argList.add(host);
+        
+        argList.add("-p");
+        argList.add( "" + serverPort);
+        
+        argList.add("-o" );
+        argList.add(".");
+
+        // convenience method to grab certificates from the TLS endpoint. Only useful in simple, 'one root, only' setups
+        estClientWrapper.buildCaCertForServer(host, serverPort);
+
+        // execute the request
+        OutcomeInfo outcomeInfo = estClientWrapper.execute(argList);
+
+        // dump the response streams. For more qualified testing do some evaluation on that content 
+        LOG.info("out: {}", outcomeInfo.getOut());
+        LOG.info("err: {}", outcomeInfo.getErr());
+
+        // check the ecxit code. 
+        // Beware: Errors may habǘe occured even with 'exitcode == 0' 
+        Assertions.assertEquals(0, outcomeInfo.getExitCode());
+        
+        // perform other tests with the same estClientWrapper instance ...
+    }
+```

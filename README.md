@@ -15,7 +15,7 @@ The wrapper has a call level interface forwarding all arguments to the binary un
 Here is a sample call showing the libest client help:
 
 ```
-java  -jar .\ESTClientWrapper-1.0.1.jar -?
+java  -jar .\ESTClientWrapper-{verion}.jar -?
 ```
 
 The client expects a set of trust anchors provided in an environment variable 'EST_OPENSSL_CACERT'. This variable must be set for all relevant actions.
@@ -29,7 +29,7 @@ Providing this variable may be os specific. To simplify it the wrapper provides 
 
 A sample call looks like this:
 ```
-java -DCA_CERT=java-truststore -jar .\ESTClientWrapper-1.0.1.jar -?
+java -DCA_CERT=java-truststore -jar .\ESTClientWrapper-{verion}.jar -?
 ```
 
 Other options are
@@ -86,3 +86,43 @@ Other options are
         // perform other tests with the same estClientWrapper instance ...
     }
 ```
+
+## libest building hints
+
+There may be reasons to rebuild the binaries, e.g. extending a buffer size.
+Place the new artefacts in the corresponding src/main/resources directories, update the version in pom.xml and rebuild the package using
+
+```
+mvn clean package
+```
+Find the new artefact under /target .
+
+
+### Linux
+A perfect guidance document leads you thru building the libest in a Ubuntu 18 docker image:
+https://kevinsaye.wordpress.com/2021/05/18/creating-a-simple-enrollment-over-secure-transport-est-server/
+
+Just watch it build! Done!
+
+### Windows
+Install Visual Studio, the Community Edition is sufficient for the job.
+
+We need openssl 1.1 and zlib as prerequisite for building libest. Luckily the are handy repos containing VC projects available on guthub:
+https://github.com/kiyolee/zlib-win-build.git
+https://github.com/kiyolee/openssl1_1-win-build.git
+
+Change the build target to 32 bit, that's what the libest build script expects.
+
+Install the prerequites mentioned in the 'Windows install' section of the libest readme.
+
+start gradle, copy/rename the missing libs to the expected locations
+
+start gradle again. A est.dll was build
+
+change to the example directory. Rename 'build_example.gradle' to 'build.gradle'. gradle does not accepted other files as build files anymore.
+drop all model/components other than 'estclient(NativeExecutableSpec)'. The dropped components require e.g. the getopt module. 
+
+start gradle and find the relevant artefacts in 'example/build/exe/estclient'
+
+Done!
+

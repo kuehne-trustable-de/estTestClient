@@ -6,7 +6,7 @@
 
     <groupId>de.trustable.ca3s.est</groupId>
     <artifactId>ESTClientWrapper</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 
     <name>ESTClientWrapper</name>
     <description>A test wrapper around different os-specific versions of libest (https://github.com/cisco/libest)([https://sourceforge.net/projects/ca3s/]

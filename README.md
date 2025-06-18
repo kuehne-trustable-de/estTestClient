@@ -19,7 +19,7 @@ java  -jar .\ESTClientWrapper-{verion}.jar -?
 ```
 
 The client expects a set of trust anchors provided in an environment variable 'EST_OPENSSL_CACERT'. This variable must be set for all relevant actions.
-Providing this variable may be os specific. To simplify it the wrapper provides an option to set this environment variable.
+Providing this variable may be os specific. To simplify it the wrapper provides an option to set this environment variable. Multiple values are separated by commas.
 
 | value of 'CA_CERT' | remarks                                                                                                            |
 |--------------------|--------------------------------------------------------------------------------------------------------------------|

@@ -1,7 +1,7 @@
 # ESTClientWrapper
-A wrapper around os-specific versions of libest (https://github.com/cisco/libest) client.
+A wrapper around os-specific versions of [libest]{https://github.com/cisco/libest} client.
 The pre-build native versions for x86-Windows and -Linux are packaged in this wrapper.
-This enables testing of an EST server (https://www.rfc-editor.org/rfc/rfc7030.html) on different platforms.
+This enables testing of an EST server's compatibility to [RFC7030]{https://www.rfc-editor.org/rfc/rfc7030.html} on different platforms.
 The binaries were copied into a temporary directory and executed there.This has security drawbacks. So use this wrapper for testing in non-productive environments, only.
 
 ## License
@@ -19,7 +19,7 @@ java  -jar .\ESTClientWrapper-{verion}.jar -?
 ```
 
 The client expects a set of trust anchors provided in an environment variable 'EST_OPENSSL_CACERT'. This variable must be set for all relevant actions.
-Providing this variable may be os specific. To simplify it the wrapper provides an option to set this environment variable. Multiple values are separated by commas.
+Providing this variable may be os specific. To simplify things the wrapper provides an option to set this environment variable. Multiple values are separated by commas.
 
 | value of 'CA_CERT' | remarks                                                                                                            |
 |--------------------|--------------------------------------------------------------------------------------------------------------------|
@@ -79,24 +79,16 @@ Other options are
         LOG.info("out: {}", outcomeInfo.getOut());
         LOG.info("err: {}", outcomeInfo.getErr());
 
-        // check the ecxit code. 
-        // Beware: Errors may habǘe occured even with 'exitcode == 0' 
+        // check the exit code. 
+        // Beware: Errors may have occured even with 'exitcode == 0' 
         Assertions.assertEquals(0, outcomeInfo.getExitCode());
         
         // perform other tests with the same estClientWrapper instance ...
     }
 ```
 
-## libest building hints
-
-There may be reasons to rebuild the binaries, e.g. extending a buffer size.
-Place the new artefacts in the corresponding src/main/resources directories, update the version in pom.xml and rebuild the package using
-
-```
-mvn clean package
-```
-Find the new artefact under /target .
-
+## building all components from sources
+There may be reasons to rebuild the binaries, e.g. extending a buffer size or to be sure the binaries are not tweaked. Find os specific hints below.
 
 ### Linux
 A perfect guidance document leads you thru building the libest in a Ubuntu 18 docker image:
@@ -105,24 +97,36 @@ https://kevinsaye.wordpress.com/2021/05/18/creating-a-simple-enrollment-over-sec
 Just watch it build! Done!
 
 ### Windows
+On Windows the process is a bit more tricks:
+
 Install Visual Studio, the Community Edition is sufficient for the job.
 
-We need openssl 1.1 and zlib as prerequisite for building libest. Luckily the are handy repos containing VC projects available on guthub:
+We need openssl 1.1 and zlib as prerequisite for building libest. Luckily the are handy repos containing VC projects available on github:
 https://github.com/kiyolee/zlib-win-build.git
 https://github.com/kiyolee/openssl1_1-win-build.git
 
 Change the build target to 32 bit, that's what the libest build script expects.
 
-Install the prerequites mentioned in the 'Windows install' section of the libest readme.
+Install the prerequisites mentioned in the 'Windows install' section of the libest readme.
 
 start gradle, copy/rename the missing libs to the expected locations
 
 start gradle again. A est.dll was build
 
 change to the example directory. Rename 'build_example.gradle' to 'build.gradle'. gradle does not accepted other files as build files anymore.
-drop all model/components other than 'estclient(NativeExecutableSpec)'. The dropped components require e.g. the getopt module. 
+drop all model/components other than 'estclient(NativeExecutableSpec)'. The dropped components are not required for the plain vanilla estclient
+but require e.g. the getopt module. 
 
-start gradle and find the relevant artefacts in 'example/build/exe/estclient'
+start gradle in the example directory and find the relevant artefacts created in 'example/build/exe/estclient'
+
+### build the ESTClientWrapper
+Place the new artefacts in the corresponding src/main/resources directories, update the version in pom.xml and rebuild the package using
+
+```
+mvn clean package
+```
+Find the new artefact under /target .
+
 
 Done!
 
